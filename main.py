@@ -30,11 +30,24 @@ def main() -> int:
     if "\n" in LINE:
         print("entry must be a single line", file=sys.stderr)
         return 1
+    if LINE != LINE.strip():
+        print("entry must not start or end with whitespace", file=sys.stderr)
+        return 1
     LINE.encode("utf-8")
 
     os.makedirs(os.path.dirname(OUTPUT_PATH), exist_ok=True)
     with open(OUTPUT_PATH, "w", encoding="utf-8", newline="\n") as f:
         f.write(LINE + "\n")
+
+    # Verify what was actually written: re-read and compare exactly.
+    with open(OUTPUT_PATH, "r", encoding="utf-8", newline="") as f:
+        written = f.read()
+    if written != LINE + "\n":
+        print("verification failed: written output differs", file=sys.stderr)
+        return 1
+    if not (1 <= len(written.rstrip("\n")) <= 240):
+        print("verification failed: written length out of range", file=sys.stderr)
+        return 1
     print(f"wrote {len(LINE)} characters to {OUTPUT_PATH}")
     print(LINE)
     return 0
